@@ -32,3 +32,4 @@ Invoke a skill in Claude Code with `/<skill-name>`.
 |---|---|---|---|
 | skill-builder | `/skill-builder` | "build a skill", "create a new skill", "audit this skill" | `.claude/skills/<name>/SKILL.md` |
 | infographic-builder | `/infographic-builder [topic]` | "create an infographic about X", "make a visual explainer", "design an educational infographic" | `projects/infographic-builder/<topic>.png` |
+| linkedin-content | `/linkedin-content [topic]` | "write a LinkedIn post about X", "create a carousel on Y", "suggest LinkedIn content ideas", "post about X" | `output/linkedin/YYYY-MM-DD-[slug].md` |

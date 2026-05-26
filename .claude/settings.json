@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "$input_json = $input | Out-String | ConvertFrom-Json; $file_path = $input_json.tool_input.file_path; if (-not $file_path) { $file_path = $input_json.tool_response.filePath }; $basename = Split-Path $file_path -Leaf; if ($basename -ne '.env') { exit 0 }; $dir = Split-Path $file_path -Parent; $example_path = Join-Path $dir '.env.example'; if (-not (Test-Path $file_path)) { exit 0 }; $lines = Get-Content $file_path; $out = foreach ($line in $lines) { $stripped = $line.Trim(); if ($stripped -eq '' -or $stripped.StartsWith('#')) { $line } elseif ($stripped -match '^([^=]+)=') { \"$($Matches[1])=your_$($Matches[1].ToLower())_here\" } else { $line } }; $out | Set-Content $example_path -Encoding utf8",
+            "statusMessage": "Syncing .env.example..."
+          }
+        ]
+      }
+    ]
+  }
+}
