@@ -1,7 +1,7 @@
 ---
 name: linkedin-content
 description: Use when someone asks to write a LinkedIn post, create a LinkedIn carousel, generate LinkedIn content, draft a post for Harena, or suggest LinkedIn content ideas. Also triggers on "post about X", "carousel on Y", "what should I post about".
-argument-hint: [topic or insight — omit to get content ideas]
+argument-hint: "topic or insight — omit to get content ideas"
 ---
 
 ## What This Skill Does
@@ -18,18 +18,22 @@ Brand guidelines live at `brand-assets/guidelines.md`. Read them before generati
 ## Step 0: Load Context
 
 1. Read `brand-assets/guidelines.md` in full.
-2. Query the Notion POSTS DATABASE using the `notion-query-database-view` MCP tool:
+2. Query the **Content Engine** (PERSONAL BRANDING > Content Engine) using `notion-search` on the collection `collection://8c70cf08-c51d-4f56-9aeb-899afea17bd6`, or fetch the pipeline view at `https://www.notion.so/9c4f8f4763824d6e9ed380ddcf950303?v=6eae7956c2ac4451b556417b48dba7b8`:
+   - Collect entries where **Platform = LinkedIn** and **Status is NOT Published and NOT Repurpose** (i.e., Backlog, Drafting, In Review, Scheduled)
+   - Store these as **pending Content Engine ideas**
+   - If Notion MCP is unavailable, set pending ideas to empty and note it
+3. Query the Notion POSTS DATABASE using the `notion-query-database-view` MCP tool:
    - View URL: `https://www.notion.so/34e1eb08ebd2803baf5dd71d7153332f?v=5c895310-1b76-4e04-8ecf-d0d1a41c5c95`
    - Request up to 100 rows
-   - If Notion MCP is unavailable, skip steps 3–4 and note that performance data is not available
-3. Build a **pillar distribution count** by inferring the pillar for each post from its `Topic` and `Post type` fields:
+   - If Notion MCP is unavailable, skip steps 4–5 and note that performance data is not available
+4. Build a **pillar distribution count** by inferring the pillar for each post from its `Topic` and `Post type` fields:
    - `operational-ai` — AI integration, workflows, decision systems, production AI, deployment failures
    - `builder-story` — edge cases, specific incidents, debugging, hands-on engineering (payroll, accounting, OCR, etc.)
    - `framework` — structured multi-step frameworks, numbered operating layers, architecture thinking
    - `leadership` — AI transformation at org level, building in Madagascar, youth empowerment, speaking engagements
    - `personal` — events, mindset content, community moments, team interactions
    Target distribution: operational-ai 40%, builder-story 25%, framework 20%, leadership 10%, personal 5%
-4. Build a **performance baseline** from `Impressions`, `Likes`, `Hook strength (1-5)`:
+5. Build a **performance baseline** from `Impressions`, `Likes`, `Hook strength (1-5)`:
    - Identify the top 3 posts by Impressions — note their Topic hook and Post type
    - Calculate average Impressions per Post type (e.g., "Experience" vs. "Insight + experience")
    - Note the Hook strength scores of high-performing posts (Hook strength 4–5 with high Impressions)
@@ -100,14 +104,47 @@ If the user requests a revision, apply it and re-display. Do not re-offer the sa
 
 Triggers when the user runs `/linkedin-content` with no argument and no topic in their message.
 
-### Step 1: Analyze pillar gaps + performance patterns
+### Step 1: Check Content Engine for pending ideas
+
+From Step 0, check whether **pending Content Engine ideas** exist (Platform = LinkedIn, Status ≠ Published/Repurpose).
+
+**If pending ideas exist:**
+
+Present up to 5, sorted by `Authority Score` descending (highest first). For each, show:
+- Number, **Title** (as the proposed topic/hook)
+- Content Type and Pillar(s) from the Content Engine
+- Notes field if non-empty (as a one-line angle hint)
+
+Example format:
+```
+Content Engine ideas (pending):
+
+1. "The decision layer: the most neglected part of AI integration"
+   Type: Framework | Pillar: Systems & Operations
+   Notes: Focus on the gap between data flow and decision logic
+
+2. "Edge cases are not noise. They are the system."
+   Type: Story | Pillar: AI Integration, Pragmatic Architecture
+```
+
+Then ask: "Which idea do you want to develop? (pick a number, or describe your own)"
+
+Once the user picks, flow into **Mode A Step 1** with that idea as the topic.
+
+**If no pending ideas exist** (Content Engine empty or all LinkedIn items published): proceed to Step 2.
+
+---
+
+### Step 2: Analyze pillar gaps + performance patterns
+
+Only reached when the Content Engine has no pending LinkedIn ideas.
 
 From the data built in Step 0:
 - Identify which pillars are under-represented relative to their targets
 - Note which Post types and topic angles drove the highest Impressions (e.g., "Experience" posts with Hook strength 5 outperformed "Annonce" posts)
 - If Notion was unavailable, treat all pillars as equally under-represented
 
-### Step 2: Suggest 4–5 ideas
+### Step 3: Suggest 4–5 ideas
 
 Generate content ideas that:
 1. Prioritize under-represented pillars
@@ -122,7 +159,7 @@ Each idea should include:
 
 Present as a numbered list.
 
-### Step 3: User picks one
+### Step 4: User picks one
 
 Ask: "Which idea do you want to develop? (1–5, or describe your own)"
 
@@ -211,5 +248,7 @@ Always apply these. They are non-negotiable.
 - Do not invent statistics or cite specific research unless the user provides them.
 - If generating "both" formats, generate the text post first, then the carousel. They should feel like two different expressions of the same insight, not copy-paste of each other.
 - The output directory `output/linkedin/` may not exist on first use — create it when saving the first file.
-- **Notion database**: POSTS DATABASE lives at `https://www.notion.so/34e1eb08ebd2803baf5dd71d7153332f` inside the LINKEDIN page. Collection ID: `collection://34e1eb08-ebd2-80d7-96e4-000b51486df1`. There is no `Pillar` property — infer pillar from `Topic` + `Post type` content as described in Step 0.
-- **If the user asks to add a Pillar field to Notion**: use the `notion-update-data-source` tool to add a select property named `Pillar` with options: operational-ai, builder-story, framework, leadership, personal. This would make future tracking more precise.
+- **Notion POSTS DATABASE**: lives at `https://www.notion.so/34e1eb08ebd2803baf5dd71d7153332f` inside the LINKEDIN page. Collection ID: `collection://34e1eb08-ebd2-80d7-96e4-000b51486df1`. There is no `Pillar` property — infer pillar from `Topic` + `Post type` content as described in Step 0.
+- **Notion Content Engine**: PERSONAL BRANDING > Content Engine. Database URL: `https://www.notion.so/9c4f8f4763824d6e9ed380ddcf950303`. Pipeline view: `https://www.notion.so/9c4f8f4763824d6e9ed380ddcf950303?v=6eae7956c2ac4451b556417b48dba7b8`. Collection: `collection://8c70cf08-c51d-4f56-9aeb-899afea17bd6`. Key fields: Title, Content Type (Insight/Framework/Authority/Story/Carousel/Case Study/Checklist), Pillar (multi-select), Status (Backlog/Drafting/In Review/Scheduled/Published/Repurpose), Platform (LinkedIn/Newsletter/X/Talk/Podcast), Authority Score (number), Notes (text).
+- **Content Engine → SKILL pillar mapping**: AI Integration → operational-ai; Systems & Operations → operational-ai or framework; Pragmatic Architecture → framework or builder-story; Leadership → leadership; Transformation → leadership; Africa Tech → leadership.
+- **If the user asks to add a Pillar field to Notion POSTS DATABASE**: use the `notion-update-data-source` tool to add a select property named `Pillar` with options: operational-ai, builder-story, framework, leadership, personal. This would make future tracking more precise.
